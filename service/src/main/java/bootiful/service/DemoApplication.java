@@ -30,8 +30,7 @@ class GreetingsHttpController {
     }
 
     @GetMapping("/greetings/{name}")
-    Greeting greet(@PathVariable String name, HttpServletRequest request) {
-
+    Greeting greet(@PathVariable String name) {
         if (!Character.isUpperCase(name.charAt(0))) {
             throw new IllegalArgumentException("you need to provide a name!");
         }
@@ -61,4 +60,5 @@ class ProblemDetailsControllerAdvice {
 
 }
 
-record Greeting(String message) {}
+record Greeting(String message) {
+}
