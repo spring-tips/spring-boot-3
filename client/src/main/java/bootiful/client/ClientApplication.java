@@ -1,5 +1,7 @@
 package bootiful.client;
 
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.SpringProxy;
 import org.springframework.aop.framework.Advised;
@@ -27,12 +29,13 @@ public class ClientApplication {
         SpringApplication.run(ClientApplication.class, args);
     }
 
+
     @Bean
-    ApplicationListener<ApplicationReadyEvent> ready(GreetingsClient client) {
-        return event -> {
-            var response = client.greet("Spring Fans");
-            System.out.println("got a response: " + response.message());
-        };
+    ApplicationListener<ApplicationReadyEvent> ready(GreetingsClient client, ObservationRegistry or) {
+        return event ->
+                Observation
+                        .createNotStarted("client.greetings", or)
+                        .observe(() -> System.out.println("got a response: " + client.greet( "Spring Fans!" ).message()));
     }
 
     static class GreetingsClientRuntimeHintsRegistrar implements RuntimeHintsRegistrar {
@@ -44,7 +47,7 @@ public class ClientApplication {
     }
 
     @Bean
-    @RegisterReflectionForBinding (Greeting.class)
+    @RegisterReflectionForBinding(Greeting.class)
     @ImportRuntimeHints(GreetingsClientRuntimeHintsRegistrar.class)
     GreetingsClient greetingsClient(HttpServiceProxyFactory proxyFactory) {
         return proxyFactory.createClient(GreetingsClient.class);
